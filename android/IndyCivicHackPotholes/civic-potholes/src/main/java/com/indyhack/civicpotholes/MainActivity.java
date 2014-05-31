@@ -1,17 +1,42 @@
 package com.indyhack.civicpotholes;
 
 import android.app.Activity;
+<<<<<<< HEAD
 import android.content.Context;
+=======
+import android.app.AlertDialog;
+import android.content.IntentSender.SendIntentException;
+>>>>>>> 7a58f55e0aa57d6636f5fdd385d307ea71112063
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
+<<<<<<< HEAD
 import com.indyhack.civicpotholes.service.PotholeDetectionService;
 import com.indyhack.civicpotholes.service.SensorService;
 
+=======
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+>>>>>>> 7a58f55e0aa57d6636f5fdd385d307ea71112063
 
-public class MainActivity extends Activity {
+
+public class MainActivity extends Activity implements
+        GooglePlayServicesClient.ConnectionCallbacks,
+        GooglePlayServicesClient.OnConnectionFailedListener {
+
+
+    private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
+    private GoogleMap mMap;
+    private LocationClient mLocationClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,16 +51,102 @@ public class MainActivity extends Activity {
         });
         service.start();
 
-//        final Context c = getBaseContext();
-//        new Thread(new Runnable() {
-//            public void run() {
-//                SensorService service = new SensorService(c);
-//                while (true) {
-//                    Log.d("asdf", "" + service.getLinearZAcceleration());
-//                    try { Thread.sleep(10); } catch (InterruptedException e) {}
-//                }
-//            }
-//        }).start();
+        mMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.mapView)).getMap();
+        mMap.setMyLocationEnabled(true);
+
+        mLocationClient = new LocationClient(this, this, this);
+    }
+
+    @Override
+    public void onConnected(Bundle bun) {
+        Log.d("MainActivity", "The mLocationHandler has been connected!");
+
+            Log.v("MainActivity","Zooming camera!!!");
+            if(mLocationClient == null || mMap == null) {
+                Log.e("LocationClient", (mLocationClient == null ? "mLocationClient" : "mMap") + " is null!");
+                return;
+            }
+
+            CameraPosition.Builder cameraPositionBuilder = new CameraPosition.Builder();
+	        /*if(mLocationClient.getLastLocation() == null) {
+	            Log.e("LocationClient", "Last location is null!");
+	            mLocationClient.disconnect();
+	            return;
+	        }*/
+            cameraPositionBuilder.target(new LatLng(mLocationClient
+                    .getLastLocation().getLatitude(), mLocationClient
+                    .getLastLocation().getLongitude()));
+            cameraPositionBuilder.zoom((float) 12);
+            mMap.animateCamera(CameraUpdateFactory
+                    .newCameraPosition(cameraPositionBuilder.build()), new GoogleMap.CancelableCallback() {
+                @Override
+                public void onCancel()
+                {
+
+                }
+
+                @Override
+                public void onFinish()
+                {
+                    Toast.makeText(MainActivity.this, "Finished zoom!", Toast.LENGTH_LONG).show();
+                    new PopulateMapTask(MainActivity.this).execute(); //.addressToLatLng("978 CHAPEL HILL RD. Indianapolis IN");
+//                    Toast.makeText(MainActivity.this, "Lat:" + l.latitude + " Lon:" + l.longitude, Toast.LENGTH_LONG).show();
+
+
+                }
+            });
+            //mLocationClient.disconnect();
+
+    }
+
+    /**
+     * Called when we fail to connect to the mLocationClient.
+     */
+    @Override
+    public void onConnectionFailed(ConnectionResult res) {
+        if (res.isSuccess() == true)
+            return;
+
+        if (res.hasResolution() == true) {
+            try {
+                res.startResolutionForResult(this,
+                        CONNECTION_FAILURE_RESOLUTION_REQUEST);
+            } catch (SendIntentException e) {
+                e.printStackTrace();
+                this.onConnectionFailed(res); // HACK: Possible stack overflow.
+            }
+        } else {
+            AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
+            alertBuilder.setTitle("Error connection to GPS");
+            alertBuilder.setMessage("Connection result: " + res.toString());
+            alertBuilder.show();
+        }
+    }
+
+
+    @Override
+    public void onDisconnected() {
+
+        Log.d("SafeWalk", "The mLocationHandler has been disconnected...");
+
+        mLocationClient.connect();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mLocationClient != null && mLocationClient.isConnected()) {
+            mLocationClient.disconnect();
+        }
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        if (mLocationClient != null && (!mLocationClient.isConnected() && !mLocationClient.isConnecting())) {
+            mLocationClient.connect();
+        }
     }
 
 
