@@ -2,9 +2,11 @@ package com.indyhack.civicpotholes;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.IntentSender.SendIntentException;
 import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,7 +41,17 @@ public class MainActivity extends Activity implements
         final Context c = getBaseContext();
         PotholeDetectionService service = new PotholeDetectionService(c, new PotholeDetectionService.OnPotholeDetectedListener() {
             public void onPotholeDetected() {
+                Toast.makeText(getApplicationContext(), "Pothole detected.", Toast.LENGTH_LONG).show();
                 Log.d("civic-pothole-detection", "Pothole detected");
+
+                NotificationCompat.Builder mBuilder =
+                        new NotificationCompat.Builder(getApplicationContext())
+                                .setSmallIcon(R.drawable.pothole)
+                                .setContentTitle("Pothole Detected")
+                                .setContentText("A pothole hole was detected and has been reported.");
+                NotificationManager mNotificationManager =
+                        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                mNotificationManager.notify(0, mBuilder.build());
             }
         });
         service.start();
