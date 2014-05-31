@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.IntentSender.SendIntentException;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -176,7 +177,14 @@ public class MainActivity extends Activity implements
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_settings)
+        {
+            return true;
+        } else if (id == R.id.detect_toggle)
+        {
+            item.setChecked( !item.isChecked() );
+            SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_NAME,MODE_PRIVATE);
+            prefs.edit().putBoolean(PREF_ENABLE_POTHOLE_DETECTION, item.isChecked()).apply();
             return true;
         }
         return super.onOptionsItemSelected(item);
