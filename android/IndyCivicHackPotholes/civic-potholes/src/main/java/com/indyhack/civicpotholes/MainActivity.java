@@ -71,7 +71,10 @@ public class MainActivity extends Activity implements
                 public void onFinish()
                 {
                     Toast.makeText(MainActivity.this, "Finished zoom!", Toast.LENGTH_LONG).show();
-                    new PopulateMapTask().execute();
+                    LatLng l = new PopulateMapTask(MainActivity.this).addressToLatLng("978 CHAPEL HILL RD. Indianapolis IN");
+                    Toast.makeText(MainActivity.this, "Lat:" + l.latitude + " Lon:" + l.longitude, Toast.LENGTH_LONG).show();
+
+
                 }
             });
             //mLocationClient.disconnect();
