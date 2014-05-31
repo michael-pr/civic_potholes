@@ -69,16 +69,13 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
                 JSONArray array = new JSONArray(result);
                 for(int i = 0; i < array.length(); i++) {
                     JSONObject addr = array.getJSONObject(i);
-                    LatLng l = addressToLatLng(addr.getString("incident_address")+", Indianapolis, IN");
-                    Log.i("POSITION", "Lat:" + l.latitude + " Lon:" + l.longitude);
+                    new GetLatLngTask(context).execute(addr.getString("incident_address")+", Indianapolis, IN");
                     //publishProgress((int)(i / (float) array.length() * 100));
-                    //Log.i("addr", addr.getString("incident_address"));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
-        Log.i("data", result);
         return null;
     }
 
@@ -90,22 +87,6 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
     @Override
     protected void onCancelled() {
         super.onCancelled();
-    }
-
-    private LatLng addressToLatLng(String name)
-    {
-        Log.i("in latlng", name);
-        Geocoder geoCoder = new Geocoder(context, Locale.getDefault());
-        try {
-            List<Address> address = geoCoder.getFromLocationName(name, 1);
-            double latitude = address.get(0).getLatitude();
-            double longitude = address.get(0).getLongitude();
-
-            return new LatLng(latitude, longitude);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 
     private String convertStreamToString(InputStream inputStream) throws IOException {
