@@ -1,12 +1,12 @@
 package com.indyhack.civicpotholes;
 
 import android.app.Activity;
-import android.location.Address;
-import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -29,7 +29,6 @@ import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Created by david on 5/31/14 for IndyCivicHackPotholes
@@ -37,10 +36,13 @@ import java.util.Locale;
 public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
 
     Activity activity;
+    static BitmapDescriptor icon;
 
-    public PopulateMapTask(Activity c)
-    {
+    public PopulateMapTask(Activity c) {
         activity = c;
+        if(icon == null) {
+            icon = BitmapDescriptorFactory.fromResource(R.drawable.pothole);
+        }
     }
 
     @Override
@@ -49,7 +51,7 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
         try {
             HttpClient client = new DefaultHttpClient();
             HttpGet request = new HttpGet();
-            request.setURI(new URI("http://communities.socrata.com/resource/8f5a-5xkb.json?$select=incident_address&status=Open"));
+            request.setURI(new URI("http://communities.socrata.com/resource/7dft-dfst.json?$select=geocoded_location.latitude,geocoded_location.longitude&status=Open"));
             response = client.execute(request);
         } catch (URISyntaxException e) {
             e.printStackTrace();
@@ -71,7 +73,18 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
                 JSONArray array = new JSONArray(result);
                 for(int i = 0; i < array.length(); i++) {
                     JSONObject addr = array.getJSONObject(i);
-                    new GetLatLngTask(activity).execute(addr.getString("incident_address")+", Indianapolis, IN");
+                    final LatLng latLng = new LatLng(addr.getDouble("sub_col_geocoded_location_longitude"), addr.getDouble("sub_col_geocoded_location_longitude"));
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            GoogleMap map = ((MapActivity) activity).getMap();
+                            if(map != null) {
+                                map.addMarker(new MarkerOptions().position(latLng).icon(icon)).setAnchor(0.5f, 0.5f);
+                            }
+                            else
+                                Log.e("Marker", "map is null");
+                        }
+                    });
                     //publishProgress((int)(i / (float) array.length() * 100));
                 }
             } catch (JSONException e) {
