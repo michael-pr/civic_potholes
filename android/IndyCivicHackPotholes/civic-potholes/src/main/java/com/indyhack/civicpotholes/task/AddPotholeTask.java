@@ -1,6 +1,7 @@
 package com.indyhack.civicpotholes.task;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpClient;
@@ -29,7 +30,7 @@ public class AddPotholeTask extends AsyncTask<Void, Void, Void> {
         HttpClient c = new DefaultHttpClient();
         HttpPost post = new HttpPost("http://aqueous-citadel-2041.herokuapp.com/addpothole");
 
-        String contents = "{latitude:"+lat+",longitude:"+lng+"}";
+        String contents = "{\"latitude\":"+lat+",\"longitude\":"+lng+"}";
         HttpEntity entity = new ByteArrayEntity(contents.getBytes());
         post.setEntity(entity);
 
