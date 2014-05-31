@@ -6,6 +6,7 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender.SendIntentException;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -33,11 +34,17 @@ public class MainActivity extends Activity implements
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private GoogleMap mMap;
     private LocationClient mLocationClient;
+    private PopulateMapTask mPopulaterTask;
+
+    public static SharedPreferences prefs;
+    public static final String SHARED_PREFS_NAME = "civic_hack_potholes_prefs";
+    public static final String PREF_ENABLE_POTHOLE_DETECTION = "enable_pothole_detection";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        prefs = getSharedPreferences(SHARED_PREFS_NAME, 0);
 
         final Context c = getBaseContext();
         PotholeDetectionService service = new PotholeDetectionService(c, new PotholeDetectionService.OnPotholeDetectedListener() {
@@ -59,6 +66,9 @@ public class MainActivity extends Activity implements
 
         mMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.mapView)).getMap();
         mMap.setMyLocationEnabled(true);
+
+        mPopulaterTask = new PopulateMapTask(MainActivity.this);
+        mPopulaterTask.execute();
 
         mLocationClient = new LocationClient(this, this, this);
     }
@@ -95,10 +105,6 @@ public class MainActivity extends Activity implements
                 public void onFinish()
                 {
                     Toast.makeText(MainActivity.this, "Finished zoom!", Toast.LENGTH_LONG).show();
-                    new PopulateMapTask(MainActivity.this).execute(); //.addressToLatLng("978 CHAPEL HILL RD. Indianapolis IN");
-//                    Toast.makeText(MainActivity.this, "Lat:" + l.latitude + " Lon:" + l.longitude, Toast.LENGTH_LONG).show();
-
-
                 }
             });
     }
@@ -130,9 +136,6 @@ public class MainActivity extends Activity implements
 
     @Override
     public void onDisconnected() {
-
-        Log.d("SafeWalk", "The mLocationHandler has been disconnected...");
-
         mLocationClient.connect();
     }
 
@@ -142,12 +145,25 @@ public class MainActivity extends Activity implements
         if (mLocationClient != null && mLocationClient.isConnected()) {
             mLocationClient.disconnect();
         }
+        if( mPopulaterTask != null && !mPopulaterTask.isCancelled())
+        {
+            mPopulaterTask.cancel(true);
+        }
+
+        SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_NAME, 0);
+        prefs.edit().putBoolean(PREF_ENABLE_POTHOLE_DETECTION, false).commit();
     }
 
     @Override
     protected void onResume()
     {
         super.onResume();
+        if(mMap != null)
+        {
+            mMap.clear();
+            mPopulaterTask = new PopulateMapTask(MainActivity.this);
+            mPopulaterTask.execute();
+        }
         if (mLocationClient != null && (!mLocationClient.isConnected() && !mLocationClient.isConnecting())) {
             mLocationClient.connect();
         }
@@ -171,6 +187,10 @@ public class MainActivity extends Activity implements
                 Intent intent = new Intent(this, AddNewPothole.class);
                 startActivity(intent);
                 return true;
+            case R.id.detect_toggle:
+                item.setChecked(!item.isChecked());
+                prefs.edit().putBoolean(PREF_ENABLE_POTHOLE_DETECTION, item.isChecked()).commit();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -180,4 +200,5 @@ public class MainActivity extends Activity implements
     public GoogleMap getMap() {
         return mMap;
     }
+
 }
