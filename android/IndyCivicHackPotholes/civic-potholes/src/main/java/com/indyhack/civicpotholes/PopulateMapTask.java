@@ -73,7 +73,7 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
                 JSONArray array = new JSONArray(result);
                 for(int i = 0; i < array.length(); i++) {
                     JSONObject addr = array.getJSONObject(i);
-                    final LatLng latLng = new LatLng(addr.getDouble("sub_col_geocoded_location_longitude"), addr.getDouble("sub_col_geocoded_location_longitude"));
+                    final LatLng latLng = new LatLng(addr.getDouble("sub_col_geocoded_location_latitude"), addr.getDouble("sub_col_geocoded_location_longitude"));
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
