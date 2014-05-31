@@ -2,12 +2,16 @@ package com.indyhack.civicpotholes;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.util.Log;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -38,10 +42,13 @@ import java.util.Locale;
 public class GetLatLngTask extends AsyncTask<String, Integer, LatLng> {
 
     Activity activity;
+    static BitmapDescriptor icon;
 
-    public GetLatLngTask(Activity a)
-    {
-        activity = a;
+    public GetLatLngTask(Activity a) {
+       activity = a;
+        if(icon == null) {
+            icon = BitmapDescriptorFactory.fromResource(R.drawable.pothole);
+        }
     }
 
     @Override
@@ -81,7 +88,7 @@ public class GetLatLngTask extends AsyncTask<String, Integer, LatLng> {
                    public void run() {
                        GoogleMap map = ((MapActivity) activity).getMap();
                        if(map != null) {
-                           map.addMarker(new MarkerOptions().position(latLng));
+                           map.addMarker(new MarkerOptions().position(latLng).icon(icon));
                        }
                        else
                            Log.e("Marker", "map is null");
