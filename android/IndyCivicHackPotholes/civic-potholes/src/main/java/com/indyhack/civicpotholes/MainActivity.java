@@ -3,7 +3,9 @@ package com.indyhack.civicpotholes;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentSender.SendIntentException;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -15,12 +17,11 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.location.ActivityRecognitionClient;
 import com.google.android.gms.location.LocationClient;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
+import com.indyhack.civicpotholes.service.ActivityRecognitionIntentService;
 import com.indyhack.civicpotholes.service.PotholeDetectionService;
 
 
@@ -28,6 +29,29 @@ public class MainActivity extends Activity implements
         GooglePlayServicesClient.ConnectionCallbacks,
         GooglePlayServicesClient.OnConnectionFailedListener,
         MapActivity {
+
+
+    // Constants that define the activity detection interval
+    public static final int MILLISECONDS_PER_SECOND = 1000;
+    public static final int DETECTION_INTERVAL_SECONDS = 20;
+    public static final int DETECTION_INTERVAL_MILLISECONDS =
+            MILLISECONDS_PER_SECOND * DETECTION_INTERVAL_SECONDS;
+
+
+    UserLocationManager locManager;
+
+    public enum REQUEST_TYPE {START, STOP}
+    private REQUEST_TYPE mRequestType;
+
+
+    /*
+     * Store the PendingIntent used to send activity recognition events
+     * back to the app
+     */
+    private PendingIntent mActivityRecognitionPendingIntent;
+    // Store the current activity recognition client
+    private ActivityRecognitionClient mActivityRecognitionClient;
+
 
 
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
@@ -39,11 +63,50 @@ public class MainActivity extends Activity implements
     public static final String SHARED_PREFS_NAME = "civic_hack_potholes_prefs";
     public static final String PREF_ENABLE_POTHOLE_DETECTION = "enable_pothole_detection";
 
+
+    // Flag that indicates if a request is underway.
+    private boolean mInProgress;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         prefs = getSharedPreferences(SHARED_PREFS_NAME, 0);
+
+
+        locManager = new UserLocationManager(this, this);
+
+
+        /*
+         * Instantiate a new activity recognition client. Since the
+         * parent Activity implements the connection listener and
+         * connection failure listener, the constructor uses "this"
+         * to specify the values of those parameters.
+         */
+        mActivityRecognitionClient =
+                new ActivityRecognitionClient(this, this, this);
+        /*
+         * Create the PendingIntent that Location Services uses
+         * to send activity recognition updates back to this app.
+         */
+        Intent intent = new Intent(
+                this, ActivityRecognitionIntentService.class);
+        /*
+         * Return a PendingIntent that starts the IntentService.
+         */
+        mActivityRecognitionPendingIntent =
+                PendingIntent.getService(this, 0, intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT);
+
+
+
+        // Start with the request flag set to false
+        mInProgress = false;
+
+
+
+
 
         final Context c = getBaseContext();
         PotholeDetectionService service = new PotholeDetectionService(c, new PotholeDetectionService.OnPotholeDetectedListener() {
@@ -69,65 +132,94 @@ public class MainActivity extends Activity implements
         mPopulaterTask = new PopulateMapTask(MainActivity.this);
         mPopulaterTask.execute();
 
-        mLocationClient = new LocationClient(this, this, this);
+        mLocationClient = new LocationClient(this, locManager, locManager);
+
     }
 
-    @Override
-    public void onConnected(Bundle bun) {
-        Log.d("MainActivity", "The mLocationHandler has been connected!");
+    public void startUpdates() {
+        // Set the request type to START
+        mRequestType = REQUEST_TYPE.START;
+        // If a request is not already underway
+        if (!mInProgress) {
+            // Indicate that a request is in progress
+            mInProgress = true;
+            // Request a connection to Location Services
+            mActivityRecognitionClient.connect();
+            //
+        } else {
+            /*
+             * A request is already underway. You can handle
+             * this situation by disconnecting the client,
+             * re-setting the flag, and then re-trying the
+             * request.
+             */
+        }
+    }
 
-            Log.v("MainActivity","Zooming camera!!!");
-            if(mLocationClient == null || mMap == null) {
-                Log.e("LocationClient", (mLocationClient == null ? "mLocationClient" : "mMap") + " is null!");
-                return;
-            }
+    /**
+     * Turn off activity recognition updates
+     *
+     */
+    public void stopUpdates() {
+        // Set the request type to STOP
+        mRequestType = REQUEST_TYPE.STOP;
+        // If a request is not already underway
+        if (!mInProgress) {
+            // Indicate that a request is in progress
+            mInProgress = true;
+            // Request a connection to Location Services
+            mActivityRecognitionClient.connect();
+            //
+        } else {
+            /*
+             * A request is already underway. You can handle
+             * this situation by disconnecting the client,
+             * re-setting the flag, and then re-trying the
+             * request.
+             */
+        }
+    }
 
-            CameraPosition.Builder cameraPositionBuilder = new CameraPosition.Builder();
-	        /*if(mLocationClient.getLastLocation() == null) {
-	            Log.e("LocationClient", "Last location is null!");
-	            mLocationClient.disconnect();
-	            return;
-	        }*/
-            cameraPositionBuilder.target(new LatLng(mLocationClient
-                    .getLastLocation().getLatitude(), mLocationClient
-                    .getLastLocation().getLongitude()));
-            cameraPositionBuilder.zoom((float) 12);
-            mMap.animateCamera(CameraUpdateFactory
-                    .newCameraPosition(cameraPositionBuilder.build()), new GoogleMap.CancelableCallback() {
-                @Override
-                public void onCancel()
-                {
 
-                }
-
-                @Override
-                public void onFinish()
-                {
-                    Toast.makeText(MainActivity.this, "Finished zoom!", Toast.LENGTH_LONG).show();
-                }
-            });
+    public void onConnected(Bundle dataBundle) {
+        switch (mRequestType) {
+            case START :
+                /*
+                 * Request activity recognition updates using the
+                 * preset detection interval and PendingIntent.
+                 * This call is synchronous.
+                 */
+                mActivityRecognitionClient.requestActivityUpdates(
+                        DETECTION_INTERVAL_MILLISECONDS,
+                        mActivityRecognitionPendingIntent);
+                break;
+            case STOP :
+                mActivityRecognitionClient.removeActivityUpdates(
+                        mActivityRecognitionPendingIntent);
+                break;
+        }
     }
 
     /**
      * Called when we fail to connect to the mLocationClient.
      */
     @Override
-    public void onConnectionFailed(ConnectionResult res) {
-        if (res.isSuccess() == true)
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        if (connectionResult.isSuccess() == true)
             return;
 
-        if (res.hasResolution() == true) {
+        if (connectionResult.hasResolution() == true) {
             try {
-                res.startResolutionForResult(this,
+                connectionResult.startResolutionForResult(this,
                         CONNECTION_FAILURE_RESOLUTION_REQUEST);
             } catch (SendIntentException e) {
                 e.printStackTrace();
-                this.onConnectionFailed(res); // HACK: Possible stack overflow.
+                this.onConnectionFailed(connectionResult); // HACK: Possible stack overflow.
             }
         } else {
             AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
             alertBuilder.setTitle("Error connection to GPS");
-            alertBuilder.setMessage("Connection result: " + res.toString());
+            alertBuilder.setMessage("Connection result: " + connectionResult.toString());
             alertBuilder.show();
         }
     }
@@ -136,11 +228,18 @@ public class MainActivity extends Activity implements
     @Override
     public void onDisconnected() {
         mLocationClient.connect();
+
+        // Turn off the request flag
+        mInProgress = false;
+        // Delete the client
+        mActivityRecognitionClient = null;
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        stopUpdates();
+
         if (mLocationClient != null && mLocationClient.isConnected()) {
             mLocationClient.disconnect();
         }
@@ -154,6 +253,9 @@ public class MainActivity extends Activity implements
     protected void onResume()
     {
         super.onResume();
+
+        startUpdates();
+
         if(mMap != null)
         {
             mMap.clear();
