@@ -30,6 +30,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
+
 /**
  * Created by david on 5/31/14 for IndyCivicHackPotholes
  */
@@ -72,16 +73,17 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
             try {
                 JSONArray array = new JSONArray(result);
                 for(int i = 0; i < array.length(); i++) {
+                    if(isCancelled())
+                        return null;
                     JSONObject addr = array.getJSONObject(i);
                     final LatLng latLng = new LatLng(addr.getDouble("sub_col_geocoded_location_latitude"), addr.getDouble("sub_col_geocoded_location_longitude"));
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             GoogleMap map = ((MapActivity) activity).getMap();
-                            if(map != null) {
+                            if (map != null) {
                                 map.addMarker(new MarkerOptions().position(latLng).icon(icon)).setAnchor(0.5f, 0.5f);
-                            }
-                            else
+                            } else
                                 Log.e("Marker", "map is null");
                         }
                     });

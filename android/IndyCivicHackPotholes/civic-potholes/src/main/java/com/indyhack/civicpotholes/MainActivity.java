@@ -30,6 +30,7 @@ public class MainActivity extends Activity implements
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private GoogleMap mMap;
     private LocationClient mLocationClient;
+    private PopulateMapTask mPopulaterTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +47,9 @@ public class MainActivity extends Activity implements
 
         mMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.mapView)).getMap();
         mMap.setMyLocationEnabled(true);
+
+        mPopulaterTask = new PopulateMapTask(MainActivity.this);
+        mPopulaterTask.execute();
 
         mLocationClient = new LocationClient(this, this, this);
     }
@@ -82,10 +86,6 @@ public class MainActivity extends Activity implements
                 public void onFinish()
                 {
                     Toast.makeText(MainActivity.this, "Finished zoom!", Toast.LENGTH_LONG).show();
-                    new PopulateMapTask(MainActivity.this).execute(); //.addressToLatLng("978 CHAPEL HILL RD. Indianapolis IN");
-//                    Toast.makeText(MainActivity.this, "Lat:" + l.latitude + " Lon:" + l.longitude, Toast.LENGTH_LONG).show();
-
-
                 }
             });
     }
@@ -117,9 +117,6 @@ public class MainActivity extends Activity implements
 
     @Override
     public void onDisconnected() {
-
-        Log.d("SafeWalk", "The mLocationHandler has been disconnected...");
-
         mLocationClient.connect();
     }
 
@@ -129,12 +126,22 @@ public class MainActivity extends Activity implements
         if (mLocationClient != null && mLocationClient.isConnected()) {
             mLocationClient.disconnect();
         }
+        if( mPopulaterTask != null && !mPopulaterTask.isCancelled())
+        {
+            mPopulaterTask.cancel(true);
+        }
     }
 
     @Override
     protected void onResume()
     {
         super.onResume();
+        if(mMap != null)
+        {
+            mMap.clear();
+            mPopulaterTask = new PopulateMapTask(MainActivity.this);
+            mPopulaterTask.execute();
+        }
         if (mLocationClient != null && (!mLocationClient.isConnected() && !mLocationClient.isConnecting())) {
             mLocationClient.connect();
         }
@@ -164,4 +171,5 @@ public class MainActivity extends Activity implements
     public GoogleMap getMap() {
         return mMap;
     }
+
 }
