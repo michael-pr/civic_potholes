@@ -25,7 +25,7 @@ public class SensorService implements SensorEventListener {
     }
 
     public double getLinearZAcceleration() {
-        Log.d("civic-pothole-detection", "" + currentZ);
+        //Log.d("civic-pothole-detection", "" + currentZ);
         return currentZ;
     }
 

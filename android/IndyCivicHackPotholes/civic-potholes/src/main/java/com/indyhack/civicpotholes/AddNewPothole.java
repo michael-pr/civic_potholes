@@ -20,6 +20,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.indyhack.civicpotholes.task.AddPotholeTask;
 
 import java.io.IOException;
 import java.util.List;
@@ -133,7 +134,8 @@ public class AddNewPothole extends Activity implements
     }
 
     public void uploadPothole(LatLng latlng) {
-        
+        new AddPotholeTask(latlng.latitude, latlng.longitude).execute();
+        finish();
     }
 
     @Override
@@ -143,7 +145,7 @@ public class AddNewPothole extends Activity implements
             case R.id.action_accept:
                 Log.i("Address", address.getText().toString());
                 uploadPothole(convertAddrToLatLng(address.getText().toString()));
-                finish();
+                return true;
             case R.id.action_settings:
                 return true;
             default:

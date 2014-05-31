@@ -23,6 +23,7 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.indyhack.civicpotholes.service.PotholeDetectionService;
+import com.indyhack.civicpotholes.task.AddPotholeTask;
 
 
 public class MainActivity extends Activity implements
@@ -60,6 +61,8 @@ public class MainActivity extends Activity implements
                 NotificationManager mNotificationManager =
                         (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
                 mNotificationManager.notify(0, mBuilder.build());
+
+                new AddPotholeTask(mLocationClient.getLastLocation().getLatitude(), mLocationClient.getLastLocation().getLongitude()).execute();
             }
         });
         service.start();
