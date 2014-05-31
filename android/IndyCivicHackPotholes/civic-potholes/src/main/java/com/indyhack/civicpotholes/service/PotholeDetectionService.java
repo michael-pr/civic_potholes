@@ -1,10 +1,13 @@
 package com.indyhack.civicpotholes.service;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+
+import com.indyhack.civicpotholes.MainActivity;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,10 +45,20 @@ public class PotholeDetectionService {
     }
     
     public void start() {
+
+        SharedPreferences prefs = c.getSharedPreferences(MainActivity.SHARED_PREFS_NAME, 0);
+        prefs.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+
+            }
+        });
+
         final SensorService service = new SensorService(c);
-        new Thread(new Runnable() {
+        Thread t = new Thread(new Runnable() {
             public void run() {
                 while (true) {
+
+
 
                     // Update the data with a new reading
                     double z = service.getLinearZAcceleration();
@@ -61,7 +74,9 @@ public class PotholeDetectionService {
 
                 }
             }
-        }).start();
+        });
+
+        t.start();
     }
 
     private boolean analyzeData() {
