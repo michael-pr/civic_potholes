@@ -38,7 +38,7 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
         super.onCancelled();
     }
 
-    private LatLng addressToLatLng(String name)
+    public LatLng addressToLatLng(String name)
     {
         Geocoder geoCoder = new Geocoder(context, Locale.getDefault());
         try {
