@@ -1,12 +1,14 @@
 package com.indyhack.civicpotholes;
 
-import android.content.Context;
+import android.app.Activity;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -34,11 +36,11 @@ import java.util.Locale;
  */
 public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
 
-    Context context;
+    Activity activity;
 
-    public PopulateMapTask(Context c)
+    public PopulateMapTask(Activity c)
     {
-        context = c;
+        activity = c;
     }
 
     @Override
@@ -69,16 +71,13 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
                 JSONArray array = new JSONArray(result);
                 for(int i = 0; i < array.length(); i++) {
                     JSONObject addr = array.getJSONObject(i);
-                    LatLng l = addressToLatLng(addr.getString("incident_address")+", Indianapolis, IN");
-                    Log.i("POSITION", "Lat:" + l.latitude + " Lon:" + l.longitude);
+                    new GetLatLngTask(activity).execute(addr.getString("incident_address")+", Indianapolis, IN");
                     //publishProgress((int)(i / (float) array.length() * 100));
-                    //Log.i("addr", addr.getString("incident_address"));
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
-        Log.i("data", result);
         return null;
     }
 
@@ -90,24 +89,6 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
     @Override
     protected void onCancelled() {
         super.onCancelled();
-    }
-
-    private LatLng addressToLatLng(String name)
-    {
-        Log.i("in latlng", name);
-        Geocoder geoCoder = new Geocoder(context, Locale.getDefault());
-        try {
-            List<Address> address = geoCoder.getFromLocationName(name, 1);
-            if(address.size() >=1 ) {
-                double latitude = address.get(0).getLatitude();
-                double longitude = address.get(0).getLongitude();
-
-                return new LatLng(latitude, longitude);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     private String convertStreamToString(InputStream inputStream) throws IOException {
