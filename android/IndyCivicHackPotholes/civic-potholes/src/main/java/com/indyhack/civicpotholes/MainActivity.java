@@ -31,6 +31,9 @@ public class MainActivity extends Activity implements
     private GoogleMap mMap;
     private LocationClient mLocationClient;
 
+    private String SHARED_PREFS_NAME = "civic_hack_potholes_prefs";
+    private String PREF_ENABLE_POTHOLE_DETECTION = "enable_pothole_detection";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
