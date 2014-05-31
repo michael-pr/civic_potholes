@@ -1,9 +1,14 @@
 package com.indyhack.civicpotholes;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import com.indyhack.civicpotholes.service.PotholeDetectionService;
+import com.indyhack.civicpotholes.service.SensorService;
 
 
 public class MainActivity extends Activity {
@@ -12,6 +17,25 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        final Context c = getBaseContext();
+        PotholeDetectionService service = new PotholeDetectionService(c, new PotholeDetectionService.OnPotholeDetectedListener() {
+            public void onPotholeDetected() {
+                Log.d("asdf", "Pothole detected");
+            }
+        });
+        service.start();
+
+//        final Context c = getBaseContext();
+//        new Thread(new Runnable() {
+//            public void run() {
+//                SensorService service = new SensorService(c);
+//                while (true) {
+//                    Log.d("asdf", "" + service.getLinearZAcceleration());
+//                    try { Thread.sleep(10); } catch (InterruptedException e) {}
+//                }
+//            }
+//        }).start();
     }
 
 
