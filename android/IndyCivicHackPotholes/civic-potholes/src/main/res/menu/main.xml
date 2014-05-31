@@ -9,5 +9,6 @@
     <item android:id="@+id/detect_toggle"
         android:title="Detect potholes"
         android:icon="@android:drawable/ic_menu_preferences"
-        android:checkable="true" />
+        android:checkable="true"
+        android:checked="true"/>
 </menu>
