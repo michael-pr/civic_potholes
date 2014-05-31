@@ -27,7 +27,7 @@ public class AddPotholeTask extends AsyncTask<Void, Void, Void> {
     protected Void doInBackground(Void... params) {
 
         HttpClient c = new DefaultHttpClient();
-        HttpPost post = new HttpPost();
+        HttpPost post = new HttpPost("http://aqueous-citadel-2041.herokuapp.com/addpothole");
 
         String contents = "{latitude:"+lat+",longitude:"+lng+"}";
         HttpEntity entity = new ByteArrayEntity(contents.getBytes());
