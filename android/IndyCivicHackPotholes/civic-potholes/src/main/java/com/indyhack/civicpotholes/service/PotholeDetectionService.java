@@ -65,7 +65,7 @@ public class PotholeDetectionService {
 
                     analyzeData();
 
-                    while (!run) {}
+                    while (!run) { try { Thread.sleep(1000); } catch (InterruptedException e) {} }
 
                 }
             }
