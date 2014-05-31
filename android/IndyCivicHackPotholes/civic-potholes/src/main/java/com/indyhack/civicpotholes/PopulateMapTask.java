@@ -1,12 +1,14 @@
 package com.indyhack.civicpotholes;
 
-import android.content.Context;
+import android.app.Activity;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -34,11 +36,11 @@ import java.util.Locale;
  */
 public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
 
-    Context context;
+    Activity activity;
 
-    public PopulateMapTask(Context c)
+    public PopulateMapTask(Activity c)
     {
-        context = c;
+        activity = c;
     }
 
     @Override
@@ -69,8 +71,20 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
                 JSONArray array = new JSONArray(result);
                 for(int i = 0; i < array.length(); i++) {
                     JSONObject addr = array.getJSONObject(i);
-                    LatLng l = addressToLatLng(addr.getString("incident_address")+", Indianapolis, IN");
+                    final LatLng l = addressToLatLng(addr.getString("incident_address")+", Indianapolis, IN");
                     Log.i("POSITION", "Lat:" + l.latitude + " Lon:" + l.longitude);
+
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            GoogleMap map = ((MapActivity) activity).getMap();
+                            if(map != null) {
+                                map.addMarker(new MarkerOptions().position(l));
+                            }
+                            else
+                                Log.e("Marker", "map is null");
+                        }
+                    });
                     //publishProgress((int)(i / (float) array.length() * 100));
                     //Log.i("addr", addr.getString("incident_address"));
                 }
@@ -95,7 +109,7 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
     private LatLng addressToLatLng(String name)
     {
         Log.i("in latlng", name);
-        Geocoder geoCoder = new Geocoder(context, Locale.getDefault());
+        Geocoder geoCoder = new Geocoder(activity.getApplicationContext(), Locale.getDefault());
         try {
             List<Address> address = geoCoder.getFromLocationName(name, 1);
             if(address.size() >=1 ) {
