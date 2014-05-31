@@ -1,17 +1,14 @@
 package com.indyhack.civicpotholes;
 
 import android.app.Activity;
-import android.content.Context;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.IntentSender.SendIntentException;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
-
-import com.indyhack.civicpotholes.service.PotholeDetectionService;
-import com.indyhack.civicpotholes.service.SensorService;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
@@ -21,11 +18,13 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.indyhack.civicpotholes.service.PotholeDetectionService;
 
 
 public class MainActivity extends Activity implements
         GooglePlayServicesClient.ConnectionCallbacks,
-        GooglePlayServicesClient.OnConnectionFailedListener {
+        GooglePlayServicesClient.OnConnectionFailedListener,
+        MapActivity {
 
 
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
@@ -159,5 +158,10 @@ public class MainActivity extends Activity implements
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public GoogleMap getMap() {
+        return mMap;
     }
 }

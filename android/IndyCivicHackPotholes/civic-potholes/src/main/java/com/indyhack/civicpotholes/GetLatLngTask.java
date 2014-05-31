@@ -1,12 +1,15 @@
 package com.indyhack.civicpotholes;
 
+import android.app.Activity;
 import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -34,16 +37,16 @@ import java.util.Locale;
  */
 public class GetLatLngTask extends AsyncTask<String, Integer, LatLng> {
 
-    Context context;
+    Activity activity;
 
-    public GetLatLngTask(Context c)
+    public GetLatLngTask(Activity a)
     {
-        context = c;
+        activity = a;
     }
 
     @Override
     protected LatLng doInBackground(String... params) {
-        Geocoder geoCoder = new Geocoder(context, Locale.getDefault());
+        Geocoder geoCoder = new Geocoder(activity, Locale.getDefault());
         try {
             List<Address> address = geoCoder.getFromLocationName(params[0], 1);
             if(address.size() >=1 ) {
@@ -69,10 +72,21 @@ public class GetLatLngTask extends AsyncTask<String, Integer, LatLng> {
     }
 
     @Override
-    protected void onPostExecute(LatLng latLng) {
+    protected void onPostExecute(final LatLng latLng) {
         super.onPostExecute(latLng);
            if(latLng != null) {
                Log.i("LATLNG", "Lat: " + latLng.latitude + ", Lng: " + latLng.longitude);
+               activity.runOnUiThread(new Runnable() {
+                   @Override
+                   public void run() {
+                       GoogleMap map = ((MapActivity) activity).getMap();
+                       if(map != null) {
+                           map.addMarker(new MarkerOptions().position(latLng));
+                       }
+                       else
+                           Log.e("Marker", "map is null");
+                   }
+               });
                // add to map
            }
     }

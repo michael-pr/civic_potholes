@@ -1,12 +1,14 @@
 package com.indyhack.civicpotholes;
 
-import android.content.Context;
+import android.app.Activity;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -34,11 +36,11 @@ import java.util.Locale;
  */
 public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
 
-    Context context;
+    Activity activity;
 
-    public PopulateMapTask(Context c)
+    public PopulateMapTask(Activity c)
     {
-        context = c;
+        activity = c;
     }
 
     @Override
@@ -69,7 +71,7 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
                 JSONArray array = new JSONArray(result);
                 for(int i = 0; i < array.length(); i++) {
                     JSONObject addr = array.getJSONObject(i);
-                    new GetLatLngTask(context).execute(addr.getString("incident_address")+", Indianapolis, IN");
+                    new GetLatLngTask(activity).execute(addr.getString("incident_address")+", Indianapolis, IN");
                     //publishProgress((int)(i / (float) array.length() * 100));
                 }
             } catch (JSONException e) {
