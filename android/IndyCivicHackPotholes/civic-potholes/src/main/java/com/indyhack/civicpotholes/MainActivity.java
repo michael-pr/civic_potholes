@@ -1,6 +1,7 @@
 package com.indyhack.civicpotholes;
 
 import android.app.Activity;
+import android.content.Context;
 import android.app.AlertDialog;
 import android.content.IntentSender.SendIntentException;
 import android.os.Bundle;
@@ -8,6 +9,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
+
+import com.indyhack.civicpotholes.service.PotholeDetectionService;
+import com.indyhack.civicpotholes.service.SensorService;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
@@ -32,6 +36,14 @@ public class MainActivity extends Activity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        final Context c = getBaseContext();
+        PotholeDetectionService service = new PotholeDetectionService(c, new PotholeDetectionService.OnPotholeDetectedListener() {
+            public void onPotholeDetected() {
+                Log.d("asdf", "Pothole detected");
+            }
+        });
+        service.start();
 
         mMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.mapView)).getMap();
         mMap.setMyLocationEnabled(true);
@@ -77,8 +89,6 @@ public class MainActivity extends Activity implements
 
                 }
             });
-            //mLocationClient.disconnect();
-
     }
 
     /**

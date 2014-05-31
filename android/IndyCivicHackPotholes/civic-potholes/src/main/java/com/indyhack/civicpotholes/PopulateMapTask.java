@@ -95,7 +95,7 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
 
             char[] buffer = new char[1024];
             try {
-                Reader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"),1024);
+                Reader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 1024);
                 int n;
                 while ((n = reader.read(buffer)) != -1) {
                     writer.write(buffer, 0, n);

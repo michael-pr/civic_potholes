@@ -20,7 +20,7 @@ public class SensorService implements SensorEventListener {
     public SensorService(Context c) {
         sensorManager = (SensorManager) c.getSystemService(Context.SENSOR_SERVICE);
         sensor = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
-        sensorManager.registerListener(this, sensor, 0);
+        sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_FASTEST);
     }
 
     public double getLinearZAcceleration() {
