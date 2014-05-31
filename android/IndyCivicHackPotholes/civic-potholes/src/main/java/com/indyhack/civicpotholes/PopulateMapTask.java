@@ -98,14 +98,16 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
         Geocoder geoCoder = new Geocoder(context, Locale.getDefault());
         try {
             List<Address> address = geoCoder.getFromLocationName(name, 1);
-            double latitude = address.get(0).getLatitude();
-            double longitude = address.get(0).getLongitude();
+            if(address.size() >=1 ) {
+                double latitude = address.get(0).getLatitude();
+                double longitude = address.get(0).getLongitude();
 
-            return new LatLng(latitude, longitude);
+                return new LatLng(latitude, longitude);
+            }
         } catch (IOException e) {
             e.printStackTrace();
-            return null;
         }
+        return null;
     }
 
     private String convertStreamToString(InputStream inputStream) throws IOException {
@@ -114,7 +116,7 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
 
             char[] buffer = new char[1024];
             try {
-                Reader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"),1024);
+                Reader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"), 1024);
                 int n;
                 while ((n = reader.read(buffer)) != -1) {
                     writer.write(buffer, 0, n);
