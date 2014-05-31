@@ -46,14 +46,16 @@ public class GetLatLngTask extends AsyncTask<String, Integer, LatLng> {
         Geocoder geoCoder = new Geocoder(context, Locale.getDefault());
         try {
             List<Address> address = geoCoder.getFromLocationName(params[0], 1);
-            double latitude = address.get(0).getLatitude();
-            double longitude = address.get(0).getLongitude();
+            if(address.size() >=1 ) {
+                double latitude = address.get(0).getLatitude();
+                double longitude = address.get(0).getLongitude();
 
-            return new LatLng(latitude, longitude);
+                return new LatLng(latitude, longitude);
+            }
         } catch (IOException e) {
             e.printStackTrace();
-            return null;
         }
+        return null;
     }
 
     @Override
