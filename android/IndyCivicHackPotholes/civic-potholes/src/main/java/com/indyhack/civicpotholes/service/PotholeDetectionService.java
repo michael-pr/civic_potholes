@@ -46,19 +46,10 @@ public class PotholeDetectionService {
     
     public void start() {
 
-        SharedPreferences prefs = c.getSharedPreferences(MainActivity.SHARED_PREFS_NAME, 0);
-        prefs.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-
-            }
-        });
-
         final SensorService service = new SensorService(c);
-        Thread t = new Thread(new Runnable() {
+        final Thread t = new Thread(new Runnable() {
             public void run() {
                 while (true) {
-
-
 
                     // Update the data with a new reading
                     double z = service.getLinearZAcceleration();
@@ -72,6 +63,18 @@ public class PotholeDetectionService {
 
                     analyzeData();
 
+                }
+            }
+        });
+
+        SharedPreferences prefs = c.getSharedPreferences(MainActivity.SHARED_PREFS_NAME, 0);
+        prefs.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                boolean isEnabled = sharedPreferences.getBoolean(MainActivity.PREF_ENABLE_POTHOLE_DETECTION, true);
+                if (isEnabled) {
+                    t.start();
+                } else {
+                    t.stop();
                 }
             }
         });
