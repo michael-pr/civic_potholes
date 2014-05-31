@@ -13,6 +13,9 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -61,13 +64,27 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        if(result != null ) {
+            try {
+                JSONArray array = new JSONArray(result);
+                for(int i = 0; i < array.length(); i++) {
+                    JSONObject addr = array.getJSONObject(i);
+                    LatLng l = addressToLatLng(addr.getString("incident_address")+", Indianapolis, IN");
+                    Log.i("POSITION", "Lat:" + l.latitude + " Lon:" + l.longitude);
+                    //publishProgress((int)(i / (float) array.length() * 100));
+                    //Log.i("addr", addr.getString("incident_address"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
         Log.i("data", result);
         return null;
     }
 
     @Override
     protected void onProgressUpdate(Integer... values) {
-        super.onProgressUpdate(values);
+        super.onProgressUpdate(values[0]);
     }
 
     @Override
@@ -75,8 +92,9 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
         super.onCancelled();
     }
 
-    public LatLng addressToLatLng(String name)
+    private LatLng addressToLatLng(String name)
     {
+        Log.i("in latlng", name);
         Geocoder geoCoder = new Geocoder(context, Locale.getDefault());
         try {
             List<Address> address = geoCoder.getFromLocationName(name, 1);
