@@ -29,6 +29,8 @@ public class PotholeDetectionService {
     private OnPotholeDetectedListener listener;
     private List<Double> linearAccelerationValues;
 
+    private boolean run = true;
+
     public PotholeDetectionService(Context c, OnPotholeDetectedListener listener) {
         this.c = c;
         this.listener = listener;
@@ -47,7 +49,7 @@ public class PotholeDetectionService {
     public void start() {
 
         final SensorService service = new SensorService(c);
-        final Thread t = new Thread(new Runnable() {
+        new Thread(new Runnable() {
             public void run() {
                 while (true) {
 
@@ -63,23 +65,27 @@ public class PotholeDetectionService {
 
                     analyzeData();
 
+                    while (!run) {}
+
                 }
             }
-        });
+        }).start();
 
-        SharedPreferences prefs = c.getSharedPreferences(MainActivity.SHARED_PREFS_NAME, 0);
-        prefs.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                boolean isEnabled = sharedPreferences.getBoolean(MainActivity.PREF_ENABLE_POTHOLE_DETECTION, true);
-                if (isEnabled) {
-                    t.start();
-                } else {
-                    t.stop();
+        new Thread(new Runnable() {
+            public void run() {
+                while (true) {
+                    SharedPreferences prefs = c.getSharedPreferences(MainActivity.SHARED_PREFS_NAME, 0);
+                    boolean isEnabled = prefs.getBoolean(MainActivity.PREF_ENABLE_POTHOLE_DETECTION, true);
+                    if (isEnabled) {
+                        run = true;
+                    } else {
+                        run = false;
+                    }
+
+                    try { Thread.sleep(1000); } catch (InterruptedException e) {}
                 }
             }
-        });
-
-        t.start();
+        }).start();
     }
 
     private boolean analyzeData() {

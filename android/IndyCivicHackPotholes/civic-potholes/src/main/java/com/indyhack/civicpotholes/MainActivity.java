@@ -35,6 +35,7 @@ public class MainActivity extends Activity implements
     private LocationClient mLocationClient;
     private PopulateMapTask mPopulaterTask;
 
+    public static SharedPreferences prefs;
     public static final String SHARED_PREFS_NAME = "civic_hack_potholes_prefs";
     public static final String PREF_ENABLE_POTHOLE_DETECTION = "enable_pothole_detection";
 
@@ -42,6 +43,7 @@ public class MainActivity extends Activity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        prefs = getSharedPreferences(SHARED_PREFS_NAME, 0);
 
         final Context c = getBaseContext();
         PotholeDetectionService service = new PotholeDetectionService(c, new PotholeDetectionService.OnPotholeDetectedListener() {
@@ -183,8 +185,7 @@ public class MainActivity extends Activity implements
         } else if (id == R.id.detect_toggle)
         {
             item.setChecked( !item.isChecked() );
-            SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_NAME,MODE_PRIVATE);
-            prefs.edit().putBoolean(PREF_ENABLE_POTHOLE_DETECTION, item.isChecked()).apply();
+            prefs.edit().putBoolean(PREF_ENABLE_POTHOLE_DETECTION, item.isChecked()).commit();
             return true;
         }
         return super.onOptionsItemSelected(item);
