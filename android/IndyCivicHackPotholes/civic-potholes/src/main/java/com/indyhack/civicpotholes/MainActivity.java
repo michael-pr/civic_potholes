@@ -1,23 +1,18 @@
 package com.indyhack.civicpotholes;
 
 import android.app.Activity;
-<<<<<<< HEAD
 import android.content.Context;
-=======
 import android.app.AlertDialog;
 import android.content.IntentSender.SendIntentException;
->>>>>>> 7a58f55e0aa57d6636f5fdd385d307ea71112063
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-<<<<<<< HEAD
 import com.indyhack.civicpotholes.service.PotholeDetectionService;
 import com.indyhack.civicpotholes.service.SensorService;
 
-=======
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
@@ -26,7 +21,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
->>>>>>> 7a58f55e0aa57d6636f5fdd385d307ea71112063
 
 
 public class MainActivity extends Activity implements
