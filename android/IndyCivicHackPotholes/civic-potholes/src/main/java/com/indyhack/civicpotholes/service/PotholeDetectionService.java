@@ -2,6 +2,8 @@ package com.indyhack.civicpotholes.service;
 
 import android.content.Context;
 import android.hardware.Sensor;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -45,49 +47,6 @@ public class PotholeDetectionService {
             linearAccelerationValues.remove(0);
         }
         linearAccelerationValues.add(value);
-
-//
-//        // Determine the average
-//        for (double d : linearAccelerationValues) {
-//            average += d;
-//        }
-//        average /= 5;
-//
-//        // Find the derivative between the first and the last ones we are watching (5 items, 50ms)
-//        double d = linearAccelerationValues.get(linearAccelerationValues.size()) - linearAccelerationValues.get(0) / 5;
-//        if (d > 2) {
-//            // LA is significantly increasing
-//
-//        }
-//
-//        if (current > prev) {
-//            nIncreasing++;
-//        }
-//
-//        if (average > 1) {
-//            upperFound = true;
-//        }
-//        if (average < -1) {
-//            if (upperFound) {
-//                lowerFound = true;
-//            }
-//        }
-//        if (average > -0.5 && average < 0.5) {
-//            upperFound = false;
-//            lowerFound = false;
-//        }
-//        if (upperFound && lowerFound) {
-//            listener.onPotholeDetected();
-//            fullPurge();
-//            upperFound = false;
-//            lowerFound = false;
-//            try {
-//                Thread.sleep(10000);
-//            } catch (InterruptedException e) {
-//            }
-//            Log.d("civic-pothole-detection", "Woke up");
-//        }
-
 
     }
     
@@ -175,7 +134,12 @@ public class PotholeDetectionService {
     }
 
     private void registerHit() {
-        listener.onPotholeDetected();
+        Handler h = new Handler(Looper.getMainLooper());
+        h.post(new Runnable() {
+            public void run() {
+                listener.onPotholeDetected();
+            }
+        });
         fullPurge();
         try {Thread.sleep(10000); } catch (InterruptedException e) {}
         Log.d("civic-pothole-detection", "Continuing pothole detection");
