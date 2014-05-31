@@ -148,6 +148,9 @@ public class MainActivity extends Activity implements
         {
             mPopulaterTask.cancel(true);
         }
+
+        SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_NAME, 0);
+        prefs.edit().putBoolean(PREF_ENABLE_POTHOLE_DETECTION, false).commit();
     }
 
     @Override
