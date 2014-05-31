@@ -1,10 +1,13 @@
 package com.indyhack.civicpotholes.service;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+
+import com.indyhack.civicpotholes.MainActivity;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,15 +29,6 @@ public class PotholeDetectionService {
     private OnPotholeDetectedListener listener;
     private List<Double> linearAccelerationValues;
 
-    private double average;
-    private int n = 0;
-
-    boolean upperFound = false, lowerFound = false;
-
-    private double prev = 0, current = 0;
-    private boolean upPeakFound = false, downPeakFound = false;
-    private int nIncreasing = 0, nDecreasing;
-
     public PotholeDetectionService(Context c, OnPotholeDetectedListener listener) {
         this.c = c;
         this.listener = listener;
@@ -51,14 +45,23 @@ public class PotholeDetectionService {
     }
     
     public void start() {
+
+        SharedPreferences prefs = c.getSharedPreferences(MainActivity.SHARED_PREFS_NAME, 0);
+        prefs.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+
+            }
+        });
+
         final SensorService service = new SensorService(c);
-        new Thread(new Runnable() {
+        Thread t = new Thread(new Runnable() {
             public void run() {
                 while (true) {
 
+
+
                     // Update the data with a new reading
                     double z = service.getLinearZAcceleration();
-                    //Log.d("asdf", "" + z);
                     addLinearAccelerationValue(z);
 
                     // Wait a bit of time
@@ -71,14 +74,16 @@ public class PotholeDetectionService {
 
                 }
             }
-        }).start();
+        });
+
+        t.start();
     }
 
     private boolean analyzeData() {
 
-        // We log 20 points of data at a time.
+        // We log like 1000 points of data at a time.
         // Through testing, we've determined that the upward tick of a pothole hit takes
-        // roughly 30 ms (3 points of data). Then the downward tick takes ~50ms (5 points ot data).
+        // roughly 30 ms. Then the downward tick takes ~50ms.
 
         // Take a partial derivative of every piece of 3 points of data, looking for significant
         // increases in linear acceleration
@@ -104,7 +109,7 @@ public class PotholeDetectionService {
         }
 
         // If we found a significant increase, next look for a significant decrease
-        // which takes place over around 5 points of data.
+        // which takes place over around 3 points of data.
 
         boolean sigDecreaseFound = false;
         if (sigIncreaseFound) {
