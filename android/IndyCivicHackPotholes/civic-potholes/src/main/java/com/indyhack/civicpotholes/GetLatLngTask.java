@@ -68,7 +68,7 @@ public class GetLatLngTask extends AsyncTask<String, Integer, LatLng> {
                    public void run() {
                        GoogleMap map = ((MapActivity) activity).getMap();
                        if(map != null) {
-                           map.addMarker(new MarkerOptions().position(latLng).icon(icon));
+                           map.addMarker(new MarkerOptions().position(latLng).icon(icon)).setAnchor(0.5f, 0.5f);
                        }
                        else
                            Log.e("Marker", "map is null");
