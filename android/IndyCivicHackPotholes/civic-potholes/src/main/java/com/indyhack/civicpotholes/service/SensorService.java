@@ -5,6 +5,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
 
 /**
  * Created by mike on 5/31/14.
@@ -24,6 +25,7 @@ public class SensorService implements SensorEventListener {
     }
 
     public double getLinearZAcceleration() {
+        Log.d("civic-pothole-linearz-get", "" + currentZ);
         return currentZ;
     }
 

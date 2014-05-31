@@ -4,6 +4,7 @@ import android.content.Context;
 import android.hardware.Sensor;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -28,48 +29,64 @@ public class PotholeDetectionService {
 
     boolean upperFound = false, lowerFound = false;
 
+    private double prev = 0, current = 0;
+    private boolean upPeakFound = false, downPeakFound = false;
+    private int nIncreasing = 0, nDecreasing;
 
     public PotholeDetectionService(Context c, OnPotholeDetectedListener listener) {
         this.c = c;
         this.listener = listener;
-        linearAccelerationValues = Collections.synchronizedList(new LinkedList<Double>());
+        linearAccelerationValues = Collections.synchronizedList(new ArrayList<Double>());
     }
 
     public void addLinearAccelerationValue(double value) {
-        // Add the value to the moving average
-        if (linearAccelerationValues.size() > 10) {
+        // Add the value to the list of values
+        if (linearAccelerationValues.size() > 1000) {
             linearAccelerationValues.remove(0);
         }
         linearAccelerationValues.add(value);
 
-
-        // Determine the average
-        for (double d : linearAccelerationValues) {
-            average += d;
-        }
-        average /= 10;
-
-        if (average > 3) {
-            upperFound = true;
-        }
-        if (average < -3) {
-            if (upperFound) {
-                lowerFound = true;
-            }
-        }
-        if (average > -0.5 && average < 0.5) {
-            upperFound = false;
-            lowerFound = false;
-        }
-        if (upperFound && lowerFound) {
-            listener.onPotholeDetected();
-            fullPurge();
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-            }
-            Log.d("asdf", "Woke up");
-        }
+//
+//        // Determine the average
+//        for (double d : linearAccelerationValues) {
+//            average += d;
+//        }
+//        average /= 5;
+//
+//        // Find the derivative between the first and the last ones we are watching (5 items, 50ms)
+//        double d = linearAccelerationValues.get(linearAccelerationValues.size()) - linearAccelerationValues.get(0) / 5;
+//        if (d > 2) {
+//            // LA is significantly increasing
+//
+//        }
+//
+//        if (current > prev) {
+//            nIncreasing++;
+//        }
+//
+//        if (average > 1) {
+//            upperFound = true;
+//        }
+//        if (average < -1) {
+//            if (upperFound) {
+//                lowerFound = true;
+//            }
+//        }
+//        if (average > -0.5 && average < 0.5) {
+//            upperFound = false;
+//            lowerFound = false;
+//        }
+//        if (upperFound && lowerFound) {
+//            listener.onPotholeDetected();
+//            fullPurge();
+//            upperFound = false;
+//            lowerFound = false;
+//            try {
+//                Thread.sleep(10000);
+//            } catch (InterruptedException e) {
+//            }
+//            Log.d("civic-pothole-detection", "Woke up");
+//        }
 
 
     }
@@ -87,9 +104,11 @@ public class PotholeDetectionService {
 
                     // Wait a bit of time
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(5);
                     } catch (InterruptedException e) {
                     }
+
+                    analyzeData();
 
                 }
             }
@@ -97,34 +116,55 @@ public class PotholeDetectionService {
     }
 
     private boolean analyzeData() {
-        // Look through the last twenty points of data
-        // Look for a pattery where we had points lower than zero, zero, than higher than zero
-        int i;
-        boolean lowerBound = false, zero = false, upperBound = false;
-        for (i = linearAccelerationValues.size()-1; i > 0; i--) {
-            double currentValue = linearAccelerationValues.get(i);
-            if (currentValue < -5) {
-                lowerBound = true;
+
+        // We log 20 points of data at a time.
+        // Through testing, we've determined that the upward tick of a pothole hit takes
+        // roughly 30 ms (3 points of data). Then the downward tick takes ~50ms (5 points ot data).
+
+        // Take a partial derivative of every piece of 3 points of data, looking for significant
+        // increases in linear acceleration
+
+        int N_INCREASE = 2;
+        double D_INCREASE_THRESH = 2;
+        int N_DECREASE = 2;
+        double D_DECREASE_THRESH = -2;
+
+
+        boolean sigIncreaseFound = false;
+        int at = -1;
+        for (int i = 0; i < linearAccelerationValues.size()-N_INCREASE; i+=N_INCREASE) {
+            double start = linearAccelerationValues.get(i);
+            double end = linearAccelerationValues.get(i+N_INCREASE);
+            double d = (end - start) / (N_INCREASE+1);
+
+            if (d > D_INCREASE_THRESH) {
+                sigIncreaseFound = true;
+                at = i;
+                break;
             }
-            if (currentValue > -0.5 && currentValue < 0.5) {
-                if (lowerBound && !upperBound) {
-                    zero = true;
-                } else {
-                    lowerBound = false;
-                    upperBound = false;
+        }
+
+        // If we found a significant increase, next look for a significant decrease
+        // which takes place over around 5 points of data.
+
+        boolean sigDecreaseFound = false;
+        if (sigIncreaseFound) {
+            for (int i = at; i < linearAccelerationValues.size() - N_DECREASE; i += N_DECREASE) {
+                double start = linearAccelerationValues.get(i);
+                double end = linearAccelerationValues.get(i + N_DECREASE);
+                double d = (end - start) / (N_DECREASE+1);
+
+                if (d < D_DECREASE_THRESH) {
+                    sigDecreaseFound = true;
+                    break;
                 }
             }
-            if (currentValue > 2) {
-                if (lowerBound && zero) {
-                    upperBound = true;
-                } else {
-                    lowerBound = false;
-                    zero = false;
-                }
-            }
-            if (lowerBound && zero && upperBound) {
-                return true;
-            }
+        }
+
+        // If we found both, register a pothole as hit
+        if (sigIncreaseFound && sigDecreaseFound) {
+            registerHit();
+            return true;
         }
 
         return false;
@@ -134,12 +174,11 @@ public class PotholeDetectionService {
         linearAccelerationValues = Collections.synchronizedList(new LinkedList<Double>());
     }
 
-    private void purge() {
-        if (linearAccelerationValues.size() > 100) {
-            for (int i = 0; i < 50; i++) {
-                linearAccelerationValues.remove(0);
-            }
-        }
+    private void registerHit() {
+        listener.onPotholeDetected();
+        fullPurge();
+        try {Thread.sleep(10000); } catch (InterruptedException e) {}
+        Log.d("civic-pothole-detection", "Continuing pothole detection");
     }
 
 

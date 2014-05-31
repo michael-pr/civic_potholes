@@ -40,7 +40,7 @@ public class MainActivity extends Activity implements
         final Context c = getBaseContext();
         PotholeDetectionService service = new PotholeDetectionService(c, new PotholeDetectionService.OnPotholeDetectedListener() {
             public void onPotholeDetected() {
-                Log.d("asdf", "Pothole detected");
+                Log.d("civic-pothole-detection", "Pothole detected");
             }
         });
         service.start();
