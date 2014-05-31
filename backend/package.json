@@ -1,0 +1,27 @@
+{
+  "name": "backend",
+  "version": "0.0.0",
+  "description": "CivicHack Indy",
+  "main": "web.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/michael-pr/civic_potholes.git"
+  },
+  "keywords": [
+    "civchack"
+  ],
+  "author": "Michael",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/michael-pr/civic_potholes/issues"
+  },
+  "homepage": "https://github.com/michael-pr/civic_potholes",
+  "dependencies": {
+    "express": "^4.4.0",
+    "logfmt": "^1.1.2"
+  }
+}
