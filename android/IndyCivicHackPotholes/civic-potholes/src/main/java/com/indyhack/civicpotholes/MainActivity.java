@@ -113,7 +113,7 @@ public class MainActivity extends Activity implements
                 @Override
                 public void onFinish()
                 {
-                    Toast.makeText(MainActivity.this, "Finished zoom!", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(MainActivity.this, "Finished zoom!", Toast.LENGTH_LONG).show();
                 }
             });
     }
