@@ -68,6 +68,8 @@ public class PopulateMapTask extends AsyncTask<Void, Integer, List<LatLng>> {
             result = convertStreamToString(response.getEntity().getContent());
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (NullPointerException e) {
+            e.printStackTrace();
         }
         if(result != null ) {
             try {

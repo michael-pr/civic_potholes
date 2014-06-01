@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender.SendIntentException;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -20,6 +22,7 @@ import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.indyhack.civicpotholes.service.PotholeDetectionService;
@@ -47,6 +50,8 @@ public class MainActivity extends Activity implements
         setContentView(R.layout.activity_main);
         prefs = getSharedPreferences(SHARED_PREFS_NAME, 0);
 
+        final Bitmap notificationIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);
+
         final Context c = getBaseContext();
         PotholeDetectionService service = new PotholeDetectionService(c, new PotholeDetectionService.OnPotholeDetectedListener() {
             public void onPotholeDetected() {
@@ -56,6 +61,7 @@ public class MainActivity extends Activity implements
                 NotificationCompat.Builder mBuilder =
                         new NotificationCompat.Builder(getApplicationContext())
                                 .setSmallIcon(R.drawable.pothole)
+                                .setLargeIcon(notificationIcon)
                                 .setContentTitle("Pothole Detected")
                                 .setContentText("A pothole hole was detected and has been reported.");
                 NotificationManager mNotificationManager =

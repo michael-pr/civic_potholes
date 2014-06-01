@@ -4,12 +4,19 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by mike on 5/31/14.
@@ -30,12 +37,15 @@ public class AddPotholeTask extends AsyncTask<Void, Void, Void> {
         HttpClient c = new DefaultHttpClient();
         HttpPost post = new HttpPost("http://aqueous-citadel-2041.herokuapp.com/addpothole");
 
-        String contents = "{\"latitude\":"+lat+",\"longitude\":"+lng+"}";
-        HttpEntity entity = new ByteArrayEntity(contents.getBytes());
-        post.setEntity(entity);
-
         try {
-            c.execute(post);
+            List<NameValuePair> pairs = new ArrayList<NameValuePair>();
+            pairs.add(new BasicNameValuePair("latitude", ""+lat));
+            pairs.add(new BasicNameValuePair("longitude", ""+lng));
+            post.setEntity(new UrlEncodedFormEntity(pairs));
+
+            HttpResponse response = c.execute(post);
+        } catch (ClientProtocolException e) {
+            // TODO Auto-generated catch block
         } catch (IOException e) {
             e.printStackTrace();
             return null;
