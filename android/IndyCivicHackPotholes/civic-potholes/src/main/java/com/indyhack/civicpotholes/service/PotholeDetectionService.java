@@ -155,12 +155,8 @@ public class PotholeDetectionService {
             }
         });
         fullPurge();
-        try {Thread.sleep(10000); } catch (InterruptedException e) {}
+        try {Thread.sleep(1000); } catch (InterruptedException e) {}
         Log.d("civic-pothole-detection", "Continuing pothole detection");
     }
-
-
-
-
 
 }

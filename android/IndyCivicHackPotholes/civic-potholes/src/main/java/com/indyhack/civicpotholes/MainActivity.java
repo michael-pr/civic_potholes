@@ -55,7 +55,7 @@ public class MainActivity extends Activity implements
         final Context c = getBaseContext();
         PotholeDetectionService service = new PotholeDetectionService(c, new PotholeDetectionService.OnPotholeDetectedListener() {
             public void onPotholeDetected() {
-                Toast.makeText(getApplicationContext(), "Pothole detected.", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Pothole detected.", Toast.LENGTH_SHORT).show();
                 Log.d("civic-pothole-detection", "Pothole detected");
 
                 NotificationCompat.Builder mBuilder =
